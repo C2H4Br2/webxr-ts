@@ -1,7 +1,6 @@
 import {
     AmbientLight, Object3D, PerspectiveCamera, Scene, WebGLRenderer, XRFrame
 } from "three";
-import { OverlayController } from "./utils/overlayController";
 import { handleXRHitTest } from "./utils/hitTest";
 import { createMarker } from "./utils/marker";
 import { GestureController } from "./utils/gestureController";
@@ -30,8 +29,7 @@ export function createScene(renderer: WebGLRenderer, model: Object3D) {
             scene.add(model);
             modelPlaced = true;
             
-            //new OverlayController(scene, model, marker);
-            new GestureController(model, marker);
+            new GestureController(model, marker, scene);
         }
     }
 

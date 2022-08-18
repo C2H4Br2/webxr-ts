@@ -33,6 +33,7 @@ function initializeXRApp() {
     const loader = new GLTFLoader();
     loader.load("../assets/models/workbench.glb", (gltf: GLTF) => {
         model = gltf.scene.children[0];
+        model.name = "workbench";
         createScene(renderer, model);
     });
 };

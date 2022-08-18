@@ -1,15 +1,32 @@
 body {
-    font-family: sans-serif;
-    text-align: center;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.btn {
+  position: fixed;
+  margin: center;
+  bottom: 0;
+  transform: translate(0, -50%);
+  background-color: darkturquoise;
+  color: white;
+  font-size: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+}
+
+.btn:active {
+  background-color: teal;
 }
 
 input[type=range][orient=vertical]
 {
-    writing-mode: bt-lr; /* IE */
-    -webkit-appearance: slider-vertical; /* Chromium */
-    width: 8px;
-    height: 175px;
-    padding: 0 5px;
+  writing-mode: bt-lr; /* IE */
+  -webkit-appearance: slider-vertical; /* Chromium */
+  width: 8px;
+  height: 175px;
+  padding: 0 5px;
 }
 
 /* Hide canvas by default, it is not needed outside immersive-ar */
