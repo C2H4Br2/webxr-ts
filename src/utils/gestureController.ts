@@ -72,10 +72,10 @@ export class GestureController extends EventDispatcher{
         this.btnSwap.innerHTML = "Change Model"
         this.btnSwap.onclick = () => {
             this.setContainerVisible(false);
-            var swapName : string = "bookcase";
-            if (this.model.name == "workbench") {
-                swapName = "bookcase";
-            } else swapName = "workbench";
+            var swapName : string = "sofa";
+            if (this.model.name == "cameraSmol") {
+                swapName = "sofa";
+            } else swapName = "cameraSmol";
             this.loader.load(`../assets/models/${swapName}.glb`, (gltf: GLTF) => {
                 this.scene.remove(this.model);
                 this.model = gltf.scene.children[0];

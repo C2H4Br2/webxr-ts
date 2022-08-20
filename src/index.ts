@@ -31,7 +31,7 @@ function initializeXRApp() {
     // Load model, then create the scene if successful
     let model : Object3D;
     const loader = new GLTFLoader();
-    loader.load("../assets/models/workbench.glb", (gltf: GLTF) => {
+    loader.load("../assets/models/cameraSmol.glb", (gltf: GLTF) => {
         model = gltf.scene.children[0];
         model.name = "workbench";
         createScene(renderer, model);
