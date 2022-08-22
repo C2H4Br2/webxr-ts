@@ -5,7 +5,7 @@ import { handleXRHitTest } from "./utils/hitTest";
 import { createMarker } from "./utils/marker";
 import { GestureController } from "./utils/gestureController";
 
-export function createScene(renderer: WebGLRenderer, model: Object3D) {
+export function createScene(renderer: WebGLRenderer, model: Object3D, modelInfo: { name: string, link: string }[]) {
     const scene = new Scene(); // for object placement
     const camera = getCamera(); // virtual camera
     const marker = createMarker(); // plane-based marker for hit-testing
@@ -29,7 +29,7 @@ export function createScene(renderer: WebGLRenderer, model: Object3D) {
             scene.add(model);
             modelPlaced = true;
             
-            new GestureController(model, marker, scene);
+            new GestureController(model, modelInfo, marker, scene);
         }
     }
 

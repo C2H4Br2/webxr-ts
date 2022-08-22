@@ -4,11 +4,14 @@ import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 export class GestureController extends EventDispatcher{
     container : HTMLDivElement;
     interact : HTMLDivElement; // area for interaction
-    loading : HTMLDivElement;
+
+    // Model-related
     model : Object3D;
+    models : Object3D[] = [];
     scene : Scene;
     marker : Mesh;
     loader : GLTFLoader;
+    modelInfo : { name: string, link: string }[];
     
     // Interaction support variables
     positions : Pos[] = [];
@@ -19,26 +22,28 @@ export class GestureController extends EventDispatcher{
 
     // UI Overlay
     debugDivs : { div: HTMLDivElement, name: string }[] = [];
-    debugDivsLen : number = 4;
+    debugDivsLen : number = 5;
     btnSwap : HTMLButtonElement;
 
 
-    constructor(model: Object3D, marker: Mesh, scene : Scene) {
+    constructor(model: Object3D, modelInfo: { name: string, link: string }[], marker: Mesh, scene : Scene) {
         super();
 
         this.container = <HTMLDivElement>document.getElementById("ui-container");
         this.interact = document.createElement("div");
-        this.loading = document.createElement("div");
         this.btnSwap = <HTMLButtonElement>document.createElement("button");
         this.model = model;
+        this.models.push(this.model);
         this.scene = scene;
         this.marker = marker;
         this.loader = new GLTFLoader();
+        this.modelInfo = modelInfo;
 
         this.initElements();
         this.initInteractions();
     }
 
+    // Initialize UI elements
     initElements() {
         this.interact.id = "interact";
         this.interact.style.width = "100%";
@@ -47,8 +52,6 @@ export class GestureController extends EventDispatcher{
         this.interact.style.left = "0";
         this.interact.style.top = "0";
         this.container.appendChild(this.interact);
-
-        this.loading
         
         for (let i = 0; i < this.debugDivsLen; i++) {
             let div : HTMLDivElement = document.createElement("div");
@@ -57,9 +60,10 @@ export class GestureController extends EventDispatcher{
                 case 1: name = "Action"; break;
                 case 2: name = "Rotate"; break;
                 case 3: name = "Scale"; break;
+                case 4: name = "Model"; break;
             }
             div.id = `div-${name}`;
-            let innerHTMLTail : string = this.getElementHTMLTail(i);
+            let innerHTMLTail : string = this.getDebugDivTail(i);
             div.innerHTML = name + ": " + innerHTMLTail;
             div.style.position = "fixed";
             div.style.left = "16px";
@@ -68,46 +72,61 @@ export class GestureController extends EventDispatcher{
             this.container.appendChild(div);
         }
 
+        // Model-swapping button
         this.btnSwap.className = "btn";
         this.btnSwap.innerHTML = "Change Model"
         this.btnSwap.onclick = () => {
             this.setContainerVisible(false);
-            var swapName : string = "sofa";
-            if (this.model.name == "cameraSmol") {
-                swapName = "sofa";
-            } else swapName = "cameraSmol";
-            this.loader.load(`../assets/models/${swapName}.glb`, (gltf: GLTF) => {
-                this.scene.remove(this.model);
-                this.model = gltf.scene.children[0];
-                this.model.position.setFromMatrixPosition(this.marker.matrix);
+
+            var currentIdx = this.modelInfo.map(info => info.name).indexOf(this.model.name);
+            this.scene.remove(this.model);
+            if (this.models.length < this.modelInfo.length) {
+                let newName = this.modelInfo[currentIdx + 1].name;
+                this.loader.load(this.modelInfo[currentIdx + 1].link, (gltf: GLTF) => {
+                    this.model = gltf.scene.children[0];
+                    this.model.name = newName;
+                    this.models.push(this.model);
+                    this.model.visible = false;
+                    this.model.scale.setScalar(0.5);
+                    this.scene.add(this.model);
+                    this.setContainerVisible(true);
+                });
+            } else {
+                let nextIdx : number;
+                if (currentIdx + 1 < this.models.length) nextIdx = currentIdx + 1;
+                else nextIdx = 0;
+                this.model = this.models[nextIdx];
+                currentIdx = nextIdx;
                 this.model.visible = false;
-                this.model.scale.setScalar(0.5);
-                this.model.name = swapName;
                 this.scene.add(this.model);
                 this.setContainerVisible(true);
-            });
+            }
         };
         this.container.appendChild(this.btnSwap);
     }
 
-    getElementHTMLTail(idx : number) : string {
+    // Get value for a specified debug div element
+    getDebugDivTail(idx : number) : string {
         switch (idx) {
             case 1: return this.action;
             case 2: return Math.round((this.model.rotation.y * (180.0 / Math.PI))).toString();
             case 3: return this.model.scale.x.toFixed(2).toString();
+            case 4: return this.model.name;
             default: return this.positions.length.toString();
         }
     }
 
+    // Reset debug divs to their original values
     resetDebugDivs() {
         for (let i = 0; i < this.debugDivsLen; i++) {
-            this.debugDivs[i].div.innerHTML = this.debugDivs[i].name + ": " + this.getElementHTMLTail(i);
+            this.debugDivs[i].div.innerHTML = this.debugDivs[i].name + ": " + this.getDebugDivTail(i);
         }
     }
 
     setContainerVisible(visible: boolean) {
         if (visible) {
             this.container.style.visibility = "visible";
+            this.resetDebugDivs();
         } else {
             this.container.style.visibility = "hidden";
         }
@@ -133,8 +152,11 @@ export class GestureController extends EventDispatcher{
             event.preventDefault();
 
             if (Date.now() - this.timeStart > 100) {
-                if (this.positions.length == 1) this.action = "rotate";
-                else if (this.positions.length == 2) this.action = "scale";
+                if (this.positions.length == 1) {
+                    if (this.model.visible) this.action = "rotate";
+                    else this.action = "tap";
+                }
+                else if (this.positions.length == 2 && this.model.visible) this.action = "scale";
                 else this.action = "unknown";
             }
             if (this.action === "rotate") {
@@ -201,6 +223,7 @@ export class GestureController extends EventDispatcher{
     }
 }
 
+// For calculating position of touches
 class Pos {
     x : number;
     y : number;

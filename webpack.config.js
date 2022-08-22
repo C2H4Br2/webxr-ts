@@ -49,7 +49,7 @@ module.exports = {
     clean: true,
   },
   devServer: {
-    allowedHosts: [".loca.lt"],
+    allowedHosts: [".loca.lt", ".glitch.me"],
     open: false,
     port: 8080,
     client: {
